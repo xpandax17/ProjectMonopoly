@@ -295,3 +295,66 @@ export function fmtWeekly(n) {
   const str = `$${abs.toFixed(0)}/wk`;
   return n < 0 ? `-${str}` : `+${str}`;
 }
+
+/**
+ * Run calculateModel for 3 exit years (5, 10, 15) and return all three results.
+ * Used by CalculatorModule to show side-by-side exit scenario cards.
+ */
+export function calculateMultiExit(baseInputs) {
+  return {
+    y5:  calculateModel({ ...baseInputs, exitYear: 5  }),
+    y10: calculateModel({ ...baseInputs, exitYear: 10 }),
+    y15: calculateModel({ ...baseInputs, exitYear: 15 }),
+  };
+}
+
+/**
+ * Build chart-ready data array for a given model result.
+ * Includes Y0 (initial outlay) and crops at exitYear.
+ * Cumulative CF at exit year includes sale proceeds (the payoff).
+ */
+export function buildChartData(results) {
+  const { yearlyData, totalInitialOutlay, exitYear, netProceeds } = results;
+
+  // Year 0 — initial outlay
+  const chartData = [{
+    year: 'Y0',
+    yearNum: 0,
+    label: 'Initial Outlay',
+    propertyValue: results.openingLoan + totalInitialOutlay * 0, // placeholder, not shown in value chart
+    loanBalance: results.openingLoan,
+    equity: totalInitialOutlay * -1,  // negative equity at start (just costs)
+    netCFAfterTax: -totalInitialOutlay,
+    weeklyBefore: 0,
+    weeklyAfter: 0,
+    cumulativeCF: -totalInitialOutlay,
+    isInitialOutlay: true,
+  }];
+
+  let cumulativeCF = -totalInitialOutlay;
+
+  // Years 1 → exitYear only
+  yearlyData
+    .filter(y => y.year <= exitYear)
+    .forEach(y => {
+      cumulativeCF += y.netCFAfterTax;
+      const isExit = y.year === exitYear;
+      // At exit year: cumulative CF jumps by net proceeds
+      const cumulativeThisYear = isExit ? cumulativeCF + netProceeds : cumulativeCF;
+
+      chartData.push({
+        year: `Y${y.year}`,
+        yearNum: y.year,
+        propertyValue: Math.round(y.propValueEnd),
+        loanBalance:   Math.round(y.loanClosing),
+        equity:        Math.round(y.equity),
+        netCFAfterTax: Math.round(y.netCFAfterTax),
+        weeklyBefore:  parseFloat(y.weeklyNetBefore.toFixed(0)),
+        weeklyAfter:   parseFloat(y.weeklyNetAfter.toFixed(0)),
+        cumulativeCF:  Math.round(cumulativeThisYear),
+        isExit,
+      });
+    });
+
+  return chartData;
+}
