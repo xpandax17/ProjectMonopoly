@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .input-field {
+    @apply w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 bg-white
+      focus:outline-none focus:ring-2 focus:ring-navy/30 focus:border-navy
+      transition-colors placeholder-slate-400;
+  }
+  .card {
+    @apply bg-white rounded-xl border border-slate-200 shadow-sm;
+  }
+  .card-header {
+    @apply px-5 py-4 border-b border-slate-100 flex items-center gap-2;
+  }
+  .card-body {
+    @apply p-5;
+  }
+  .label {
+    @apply text-xs font-medium text-slate-500 uppercase tracking-wide mb-1 block;
+  }
+  .metric-value {
+    @apply text-2xl font-bold text-navy;
+  }
+  .metric-label {
+    @apply text-xs text-slate-500 mt-0.5;
+  }
+  .pill-toggle {
+    @apply inline-flex rounded-lg overflow-hidden border border-slate-200 bg-slate-50;
+  }
+  .pill-btn {
+    @apply px-4 py-2 text-sm font-medium transition-all cursor-pointer;
+  }
+  .pill-btn-active {
+    @apply bg-navy text-white;
+  }
+  .pill-btn-inactive {
+    @apply text-slate-600 hover:bg-slate-100;
+  }
+}
+
+/* Scrollbar styling for cash flow table */
+.cf-table-container::-webkit-scrollbar {
+  height: 6px;
+}
+.cf-table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+.cf-table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.cf-table-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  opacity: 0.5;
+}
