@@ -1,39 +1,72 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Brain, BarChart2, Calculator, Receipt, ArrowRight, Search } from 'lucide-react'
 
-const MODULES = [
+const TOOLS = [
   {
-    id: 'quiz',
     path: '/quiz',
-    icon: '🧠',
-    tag: 'Module 1',
-    title: 'What Investor Am I?',
-    description: '12 questions. 5 investor archetypes. Understand your strategy, risk tolerance, and the kind of property that actually fits your life.',
+    icon: Brain,
+    color: 'bg-purple-50',
+    iconColor: 'text-purple-600',
+    accentColor: 'bg-purple-600',
+    tag: 'Step 1',
+    title: 'Investor Profile Quiz',
+    description: '12 questions · 5 archetypes. Understand your risk tolerance, time commitment, and strategy fit before you buy.',
     cta: 'Take the quiz',
-    color: 'from-purple-600 to-indigo-700',
     badge: '~4 mins',
+    badgeColor: 'bg-purple-100 text-purple-700',
   },
   {
-    id: 'calculator',
     path: '/calculator',
-    icon: '📊',
-    tag: 'Module 2',
-    title: 'Cash Flow Calculator',
-    description: 'Model a property\'s 20-year cash flow. See your weekly holding cost, IRR, and net proceeds across 5, 10 and 15 year exit scenarios.',
+    icon: BarChart2,
+    color: 'bg-blue-50',
+    iconColor: 'text-navy',
+    accentColor: 'bg-navy',
+    tag: 'Step 2',
+    title: 'Cash Flow Model',
+    description: 'Model a property\'s 20-year cash flow. Weekly holding cost, IRR, and net proceeds across Y5 / Y10 / Y15 exit scenarios.',
     cta: 'Run the numbers',
-    color: 'from-navy to-blue-800',
     badge: 'Core tool',
+    badgeColor: 'bg-navy/10 text-navy',
   },
   {
-    id: 'research',
+    path: '/borrowing',
+    icon: Calculator,
+    color: 'bg-emerald-50',
+    iconColor: 'text-emerald-600',
+    accentColor: 'bg-emerald-600',
+    tag: 'Step 3',
+    title: 'Borrowing Power',
+    description: 'Quick estimate of your maximum borrowing capacity based on income, expenses, and deposit size.',
+    cta: 'Check capacity',
+    badge: 'Quick calc',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+  },
+  {
+    path: '/stamp-duty',
+    icon: Receipt,
+    color: 'bg-amber-50',
+    iconColor: 'text-amber-600',
+    accentColor: 'bg-amber-600',
+    tag: 'Step 4',
+    title: 'Stamp Duty & Costs',
+    description: 'State-based stamp duty calculator for QLD · NSW · VIC · WA, plus conveyancer, inspection, and total upfront costs.',
+    cta: 'Calculate costs',
+    badge: 'QLD/NSW/VIC/WA',
+    badgeColor: 'bg-amber-100 text-amber-700',
+  },
+  {
     path: '/research',
-    icon: '🔍',
-    tag: 'Module 3',
+    icon: Search,
+    color: 'bg-slate-50',
+    iconColor: 'text-slate-400',
+    accentColor: 'bg-slate-400',
+    tag: 'Coming Soon',
     title: 'Property Research',
-    description: 'Paste a Domain.com.au link. Pull listing data, run a comparable sales analysis, and get a due diligence checklist — all in one place.',
+    description: 'Paste a Domain.com.au link. Pull listing data, run comparable sales, and get a full due diligence checklist.',
     cta: 'Coming soon',
-    color: 'from-slate-500 to-slate-700',
-    badge: 'Coming soon',
+    badge: 'V4',
+    badgeColor: 'bg-slate-100 text-slate-500',
     disabled: true,
   },
 ]
@@ -42,63 +75,64 @@ export default function HomeScreen() {
   const navigate = useNavigate()
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-12">
-      {/* Hero */}
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-playfair font-bold text-navy mb-3">
-          Your Property Investment Toolkit
-        </h2>
-        <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-          From "am I the right type of investor?" to "does this deal stack up?" — three tools that take you through the full decision.
+    <div className="max-w-5xl mx-auto px-8 py-10">
+      {/* Page header */}
+      <div className="mb-10">
+        <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-2">Property Investment Toolkit</p>
+        <h1 className="font-playfair text-3xl font-bold text-navy mb-2">
+          Where do you want to start?
+        </h1>
+        <p className="text-slate-500 text-base max-w-2xl">
+          Five tools that take you from "what type of investor am I?" to "does this deal stack up?" — each one designed for clarity, not complexity.
         </p>
       </div>
 
-      {/* Module cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {MODULES.map(mod => (
-          <div
-            key={mod.id}
-            className={`relative rounded-2xl overflow-hidden shadow-lg transition-all duration-200 ${
-              mod.disabled ? 'opacity-60 cursor-default' : 'cursor-pointer hover:-translate-y-1 hover:shadow-xl'
-            }`}
-            onClick={() => !mod.disabled && navigate(mod.path)}
-          >
-            {/* Gradient top bar */}
-            <div className={`bg-gradient-to-r ${mod.color} p-6 pb-8`}>
-              <div className="flex items-start justify-between">
-                <span className="text-4xl">{mod.icon}</span>
-                <span className="text-xs font-semibold bg-white/20 text-white px-2.5 py-1 rounded-full">
-                  {mod.badge}
-                </span>
-              </div>
-              <div className="mt-4">
-                <p className="text-white/60 text-xs font-semibold uppercase tracking-widest">{mod.tag}</p>
-                <h3 className="text-white text-xl font-bold mt-1 leading-tight">{mod.title}</h3>
+      {/* Tool grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {TOOLS.map(tool => {
+          const Icon = tool.icon
+          return (
+            <div
+              key={tool.path}
+              onClick={() => !tool.disabled && navigate(tool.path)}
+              className={`
+                group relative bg-white border border-slate-200 rounded-xl p-6 transition-all
+                ${tool.disabled
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'cursor-pointer hover:border-navy/30 hover:shadow-md hover:-translate-y-0.5'
+                }
+              `}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`w-10 h-10 rounded-xl ${tool.color} flex items-center justify-center flex-shrink-0`}>
+                  <Icon size={18} className={tool.iconColor} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{tool.tag}</span>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${tool.badgeColor}`}>
+                      {tool.badge}
+                    </span>
+                  </div>
+                  <h3 className="font-semibold text-navy text-base mb-1.5">{tool.title}</h3>
+                  <p className="text-slate-500 text-sm leading-relaxed">{tool.description}</p>
+                  {!tool.disabled && (
+                    <div className="mt-3 flex items-center gap-1 text-sm font-semibold text-navy group-hover:text-gold transition-colors">
+                      {tool.cta}
+                      <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-
-            {/* Content */}
-            <div className="bg-white p-6">
-              <p className="text-slate-500 text-sm leading-relaxed">{mod.description}</p>
-              <div className="mt-5">
-                <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${
-                  mod.disabled ? 'text-slate-400' : 'text-navy'
-                }`}>
-                  {mod.cta}
-                  {!mod.disabled && <span className="text-gold">→</span>}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      {/* Bottom tagline */}
-      <div className="mt-12 text-center">
-        <p className="text-slate-400 text-sm">
-          Built for Australian residential property investors · All projections are illustrative only
-        </p>
-      </div>
-    </main>
+      {/* Footer note */}
+      <p className="mt-8 text-xs text-slate-400 text-center">
+        Built for Australian residential property investors · All projections are illustrative only · Not financial advice
+      </p>
+    </div>
   )
 }

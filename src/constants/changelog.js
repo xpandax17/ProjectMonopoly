@@ -1,5 +1,18 @@
 export const CHANGELOG = [
   {
+    version: '3.0',
+    date: 'Mar 2026',
+    changes: [
+      'UI overhaul: left sidebar nav replacing top header, clean Mouon/Moneda-inspired design',
+      'Quiz: shorter questions, new "So What?" action bullets per archetype, comparison chart (4 dimensions)',
+      'Calculator: number input fix (backspace no longer snaps back), neg gearing toggle restored',
+      'Calculator: growth assumptions in main view, exit selector on all 3 tabs',
+      'Calculator: 6-chart overhaul — CF before/after neg gearing, equity vs cash invested, IRR sensitivity',
+      'New module: Borrowing Power calculator with 4 inputs + bank calculator links',
+      'New module: Stamp Duty calculator for QLD · NSW · VIC · WA with FHB concessions',
+    ],
+  },
+  {
     version: '2.0',
     date: 'Mar 2026',
     changes: [

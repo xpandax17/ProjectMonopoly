@@ -312,6 +312,7 @@ export function calculateMultiExit(baseInputs) {
  * Build chart-ready data array for a given model result.
  * Includes Y0 (initial outlay) and crops at exitYear.
  * Cumulative CF at exit year includes sale proceeds (the payoff).
+ * Includes netCFBefore and cumulativeCashIn for new charts.
  */
 export function buildChartData(results) {
   const { yearlyData, totalInitialOutlay, exitYear, netProceeds } = results;
@@ -321,23 +322,30 @@ export function buildChartData(results) {
     year: 'Y0',
     yearNum: 0,
     label: 'Initial Outlay',
-    propertyValue: results.openingLoan + totalInitialOutlay * 0, // placeholder, not shown in value chart
+    propertyValue: 0,
     loanBalance: results.openingLoan,
-    equity: totalInitialOutlay * -1,  // negative equity at start (just costs)
+    equity: 0,
     netCFAfterTax: -totalInitialOutlay,
+    netCFBefore: -totalInitialOutlay,
     weeklyBefore: 0,
     weeklyAfter: 0,
     cumulativeCF: -totalInitialOutlay,
+    cumulativeCashIn: totalInitialOutlay,
     isInitialOutlay: true,
   }];
 
   let cumulativeCF = -totalInitialOutlay;
+  let cumulativeCashIn = totalInitialOutlay; // running total of cash paid in
 
   // Years 1 → exitYear only
   yearlyData
     .filter(y => y.year <= exitYear)
     .forEach(y => {
       cumulativeCF += y.netCFAfterTax;
+      // Cash in = out-of-pocket holding costs (only count negative CF years)
+      if (y.netCFAfterTax < 0) {
+        cumulativeCashIn += Math.abs(y.netCFAfterTax);
+      }
       const isExit = y.year === exitYear;
       // At exit year: cumulative CF jumps by net proceeds
       const cumulativeThisYear = isExit ? cumulativeCF + netProceeds : cumulativeCF;
@@ -349,12 +357,36 @@ export function buildChartData(results) {
         loanBalance:   Math.round(y.loanClosing),
         equity:        Math.round(y.equity),
         netCFAfterTax: Math.round(y.netCFAfterTax),
+        netCFBefore:   Math.round(y.netCFBeforeTax),
         weeklyBefore:  parseFloat(y.weeklyNetBefore.toFixed(0)),
         weeklyAfter:   parseFloat(y.weeklyNetAfter.toFixed(0)),
         cumulativeCF:  Math.round(cumulativeThisYear),
+        cumulativeCashIn: Math.round(cumulativeCashIn),
         isExit,
       });
     });
 
   return chartData;
+}
+
+/**
+ * Calculate IRR across 3 capital growth scenarios × 3 exit years.
+ * Returns 9 data points for the sensitivity chart.
+ */
+export function calculateIRRSensitivity(baseInputs) {
+  const offsets = [-2, 0, 2];
+  return offsets.map(delta => {
+    const growth = baseInputs.capitalGrowth + delta;
+    const modified = { ...baseInputs, capitalGrowth: growth };
+    const y5  = calculateModel({ ...modified, exitYear: 5  });
+    const y10 = calculateModel({ ...modified, exitYear: 10 });
+    const y15 = calculateModel({ ...modified, exitYear: 15 });
+    return {
+      growth: `${growth}% growth`,
+      growthLabel: delta === 0 ? 'Base case' : delta > 0 ? `+${delta}% upside` : `${delta}% downside`,
+      y5:  parseFloat(y5.irr.toFixed(1)),
+      y10: parseFloat(y10.irr.toFixed(1)),
+      y15: parseFloat(y15.irr.toFixed(1)),
+    };
+  });
 }

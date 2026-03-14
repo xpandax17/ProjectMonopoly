@@ -1,10 +1,20 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { QUESTIONS, scoreQuiz } from './questions'
 import { ARCHETYPES } from './archetypes'
 
-// ── Quiz states ─────────────────────────────────────────────────────────────
-// 'intro' → 'question' → 'result'
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function renderText(text) {
+  if (!text) return null
+  const parts = text.split(/\*\*(.+?)\*\*/g)
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+  )
+}
+
+// ── Progress Bar ─────────────────────────────────────────────────────────────
 
 function ProgressBar({ current, total }) {
   return (
@@ -17,6 +27,8 @@ function ProgressBar({ current, total }) {
   )
 }
 
+// ── Intro Screen ─────────────────────────────────────────────────────────────
+
 function IntroScreen({ onStart }) {
   return (
     <div className="max-w-2xl mx-auto text-center py-16 px-6">
@@ -25,12 +37,12 @@ function IntroScreen({ onStart }) {
         What Kind of Investor Are You?
       </h2>
       <p className="text-slate-500 text-lg mb-4 leading-relaxed">
-        12 quick questions. We'll profile your risk appetite, time commitment, and goals — then match you to one of 5 investor archetypes.
+        12 quick questions. We'll match you to one of 5 investor archetypes.
       </p>
       <p className="text-slate-400 text-sm mb-8">
-        Based on the investor framework from <em>The Armchair Guide to Property Investing</em> by Helen Kingsley & Stuart Wemyss.
+        Based on the investor framework from <em>The Armchair Guide to Property Investing</em>.
       </p>
-      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-8">
         {['~4 minutes', '12 questions', '5 archetypes'].map(item => (
           <span key={item} className="bg-navy/5 text-navy text-sm font-medium px-4 py-2 rounded-full">
             {item}
@@ -39,7 +51,7 @@ function IntroScreen({ onStart }) {
       </div>
       <button
         onClick={onStart}
-        className="bg-navy text-white px-8 py-3.5 rounded-xl font-semibold text-base hover:bg-navy-light transition-colors shadow-lg"
+        className="bg-navy text-white px-8 py-3.5 rounded-xl font-semibold text-base hover:bg-navy-light transition-colors"
       >
         Start the quiz →
       </button>
@@ -47,24 +59,23 @@ function IntroScreen({ onStart }) {
   )
 }
 
+// ── Question Screen ───────────────────────────────────────────────────────────
+
 function QuestionScreen({ question, qIndex, total, onAnswer, selectedAnswer }) {
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
-      {/* Progress */}
       <div className="mb-8">
         <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
           <span>Question {qIndex + 1} of {total}</span>
-          <span>{Math.round(((qIndex) / total) * 100)}% complete</span>
+          <span>{Math.round((qIndex / total) * 100)}% complete</span>
         </div>
         <ProgressBar current={qIndex} total={total} />
       </div>
 
-      {/* Question */}
       <h3 className="text-xl font-bold text-navy mb-6 leading-snug">
-        {question.question}
+        {renderText(question.question)}
       </h3>
 
-      {/* Options */}
       <div className="space-y-3">
         {question.options.map((opt, i) => (
           <button
@@ -73,7 +84,7 @@ function QuestionScreen({ question, qIndex, total, onAnswer, selectedAnswer }) {
             className={`
               w-full text-left px-5 py-4 rounded-xl border-2 text-sm transition-all duration-150
               ${selectedAnswer === i
-                ? 'border-navy bg-navy/5 text-navy font-medium shadow-sm'
+                ? 'border-navy bg-navy/5 text-navy font-medium'
                 : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
               }
             `}
@@ -84,7 +95,7 @@ function QuestionScreen({ question, qIndex, total, onAnswer, selectedAnswer }) {
             `}>
               {String.fromCharCode(65 + i)}
             </span>
-            {opt.text}
+            {renderText(opt.text)}
           </button>
         ))}
       </div>
@@ -92,9 +103,113 @@ function QuestionScreen({ question, qIndex, total, onAnswer, selectedAnswer }) {
   )
 }
 
-function ResultScreen({ archetype, scores, onRestart, onGoToCalculator, onExploreAll, showingAll, setShowingAll }) {
+// ── Comparison Chart ──────────────────────────────────────────────────────────
+
+const DIMENSIONS = [
+  { key: 'timeCommitment', label: 'Time Commitment' },
+  { key: 'renovationAppetite', label: 'Renovation Appetite' },
+  { key: 'riskTolerance', label: 'Risk Tolerance' },
+  { key: 'holdPeriod', label: 'Hold Period' },
+]
+
+function ComparisonChart({ userArchetype }) {
+  // Build chart data — one row per dimension
+  const chartData = DIMENSIONS.map(dim => {
+    const row = { dimension: dim.label }
+    ARCHETYPES.forEach(a => {
+      row[a.id] = a.scores[dim.key]
+    })
+    return row
+  })
+
+  const COLORS = {
+    hustler: '#f97316',
+    parttimer: '#eab308',
+    strategist: '#3b82f6',
+    wealthbuilder: '#10b981',
+    analyst: '#8b5cf6',
+  }
+
+  return (
+    <div className="mt-6">
+      <div className="card p-5 mb-5">
+        <h4 className="text-sm font-semibold text-navy mb-1">How all 5 types compare</h4>
+        <p className="text-xs text-slate-400 mb-4">Scored 1–5 across four key dimensions</p>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 20, top: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+            <XAxis type="number" domain={[0, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 11 }} />
+            <YAxis type="category" dataKey="dimension" tick={{ fontSize: 11 }} width={120} />
+            <Tooltip
+              formatter={(val, name) => {
+                const a = ARCHETYPES.find(a => a.id === name)
+                return [val + ' / 5', a ? a.name : name]
+              }}
+            />
+            {ARCHETYPES.map(a => (
+              <Bar
+                key={a.id}
+                dataKey={a.id}
+                fill={COLORS[a.id]}
+                opacity={a.id === userArchetype.id ? 1 : 0.45}
+                radius={[0, 3, 3, 0]}
+                barSize={8}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+        <div className="flex flex-wrap gap-3 mt-3">
+          {ARCHETYPES.map(a => (
+            <div key={a.id} className="flex items-center gap-1.5">
+              <div
+                className="w-3 h-3 rounded-sm flex-shrink-0"
+                style={{ backgroundColor: COLORS[a.id], opacity: a.id === userArchetype.id ? 1 : 0.45 }}
+              />
+              <span className={`text-xs ${a.id === userArchetype.id ? 'font-semibold text-navy' : 'text-slate-500'}`}>
+                {a.name}{a.id === userArchetype.id ? ' (you)' : ''}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Mini archetype cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {ARCHETYPES.map(a => (
+          <div
+            key={a.id}
+            className={`card p-4 ${a.id === userArchetype.id ? 'ring-2 ring-gold' : ''}`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">{a.emoji}</span>
+              <div>
+                <p className="text-xs font-bold text-navy leading-tight">{a.name}</p>
+                <p className="text-xs text-slate-400 leading-tight">{a.tagline}</p>
+              </div>
+              {a.id === userArchetype.id && (
+                <span className="ml-auto text-xs bg-gold/20 text-gold font-semibold px-2 py-0.5 rounded-full">You</span>
+              )}
+            </div>
+            <ul className="space-y-1.5 mt-2">
+              {a.soWhat.map((item, i) => (
+                <li key={i} className="text-xs text-slate-600 flex gap-1.5">
+                  <span className="text-gold flex-shrink-0">→</span>
+                  <span><strong>{item.bold}</strong>{item.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Result Screen ─────────────────────────────────────────────────────────────
+
+function ResultScreen({ archetype, scores, onRestart, onGoToCalculator, showingComparison, setShowingComparison }) {
   const navigate = useNavigate()
-  const archetypeNames = ['The Hustler', 'The Part-Timer', 'The Strategist', 'The Wealth Builder', 'The Analyst']
+  const archetypeNames = ARCHETYPES.map(a => a.name)
   const maxScore = Math.max(...scores)
 
   return (
@@ -108,7 +223,7 @@ function ResultScreen({ archetype, scores, onRestart, onGoToCalculator, onExplor
         <p className="text-white/90 text-base font-medium italic">"{archetype.tagline}"</p>
       </div>
 
-      {/* Score bar */}
+      {/* Score breakdown */}
       <div className="card p-4 mb-5">
         <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Your score breakdown</h4>
         <div className="space-y-2">
@@ -127,7 +242,7 @@ function ResultScreen({ archetype, scores, onRestart, onGoToCalculator, onExplor
         </div>
       </div>
 
-      {/* Description */}
+      {/* Main description card */}
       <div className="card p-5 mb-5 space-y-4">
         <div>
           <h4 className="text-sm font-semibold text-navy mb-2">About you</h4>
@@ -148,10 +263,25 @@ function ResultScreen({ archetype, scores, onRestart, onGoToCalculator, onExplor
           <h4 className="text-sm font-semibold text-navy mb-1">Ideal property type</h4>
           <p className="text-slate-600 text-sm leading-relaxed">{archetype.idealProperty}</p>
         </div>
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-          <h4 className="text-sm font-semibold text-amber-700 mb-1">⚠️ Watch out for</h4>
-          <p className="text-amber-700 text-sm leading-relaxed">{archetype.watchOut}</p>
-        </div>
+      </div>
+
+      {/* So What section */}
+      <div className="bg-navy/5 border border-navy/10 rounded-xl p-5 mb-5">
+        <h4 className="text-sm font-bold text-navy mb-3">So what does this mean for you?</h4>
+        <ul className="space-y-2.5">
+          {archetype.soWhat.map((item, i) => (
+            <li key={i} className="flex gap-2.5 text-sm text-slate-700">
+              <span className="text-gold font-bold flex-shrink-0 mt-0.5">→</span>
+              <span><strong>{item.bold}</strong>{item.detail}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Watch out */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <h4 className="text-sm font-semibold text-amber-700 mb-1">Watch out for</h4>
+        <p className="text-amber-700 text-sm leading-relaxed">{archetype.watchOut}</p>
       </div>
 
       {/* CTAs */}
@@ -176,48 +306,28 @@ function ResultScreen({ archetype, scores, onRestart, onGoToCalculator, onExplor
         </button>
       </div>
 
-      {/* Explore all archetypes */}
+      {/* Compare all types toggle */}
       <button
-        onClick={() => setShowingAll(v => !v)}
-        className="w-full text-sm font-medium text-navy hover:text-navy-light transition-colors flex items-center justify-center gap-2 py-2"
+        onClick={() => setShowingComparison(v => !v)}
+        className="w-full text-sm font-medium text-navy hover:text-navy-light transition-colors flex items-center justify-center gap-2 py-2 border border-navy/20 rounded-xl hover:bg-navy/5"
       >
-        {showingAll ? '▲ Hide' : '▼ Explore'} all 5 investor types
+        {showingComparison ? '▲ Hide comparison' : 'Compare all 5 investor types →'}
       </button>
 
-      {showingAll && (
-        <div className="mt-4 space-y-3">
-          {ARCHETYPES.map(a => (
-            <div key={a.id} className={`card overflow-hidden ${a.id === archetype.id ? 'ring-2 ring-gold' : ''}`}>
-              <div className={`bg-gradient-to-r ${a.color} px-5 py-3 flex items-center gap-3`}>
-                <span className="text-2xl">{a.emoji}</span>
-                <div>
-                  <h4 className="text-white font-bold text-sm">{a.name}</h4>
-                  <p className="text-white/70 text-xs">{a.tagline}</p>
-                </div>
-                {a.id === archetype.id && (
-                  <span className="ml-auto text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">You</span>
-                )}
-              </div>
-              <div className="px-5 py-3 text-sm text-slate-600 leading-relaxed">
-                {a.description}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {showingComparison && <ComparisonChart userArchetype={archetype} />}
     </div>
   )
 }
 
-// ── Main QuizModule ──────────────────────────────────────────────────────────
+// ── Main QuizModule ───────────────────────────────────────────────────────────
 
 export default function QuizModule() {
   const navigate = useNavigate()
-  const [stage, setStage] = useState('intro')      // 'intro' | 'question' | 'result'
+  const [stage, setStage] = useState('intro')
   const [currentQ, setCurrentQ] = useState(0)
-  const [answers, setAnswers] = useState([])        // selected option index per question
-  const [result, setResult] = useState(null)        // { archetype, scores }
-  const [showingAll, setShowingAll] = useState(false)
+  const [answers, setAnswers] = useState([])
+  const [result, setResult] = useState(null)
+  const [showingComparison, setShowingComparison] = useState(false)
 
   const handleStart = () => {
     setAnswers([])
@@ -230,12 +340,10 @@ export default function QuizModule() {
     newAnswers[currentQ] = optionIdx
     setAnswers(newAnswers)
 
-    // Auto-advance after brief delay
     setTimeout(() => {
       if (currentQ + 1 < QUESTIONS.length) {
         setCurrentQ(q => q + 1)
       } else {
-        // Score and show result
         const { scores, winnerIdx } = scoreQuiz(newAnswers)
         setResult({ archetype: ARCHETYPES[winnerIdx], scores })
         setStage('result')
@@ -248,13 +356,13 @@ export default function QuizModule() {
     setAnswers([])
     setCurrentQ(0)
     setResult(null)
-    setShowingAll(false)
+    setShowingComparison(false)
   }
 
   return (
     <div>
       {/* Sub-header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <button onClick={() => navigate('/')} className="hover:text-navy transition-colors">Home</button>
@@ -288,9 +396,8 @@ export default function QuizModule() {
           scores={result.scores}
           onRestart={handleRestart}
           onGoToCalculator={() => navigate('/calculator')}
-          onExploreAll={() => setShowingAll(true)}
-          showingAll={showingAll}
-          setShowingAll={setShowingAll}
+          showingComparison={showingComparison}
+          setShowingComparison={setShowingComparison}
         />
       )}
     </div>

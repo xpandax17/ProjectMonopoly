@@ -1,5 +1,6 @@
 import React from 'react'
-import { fmtCurrency } from '../../utils/calculations'
+import { fmtCurrency, fmtPct } from '../../utils/calculations'
+import { ExitSelector } from './InputsTab'
 
 const SECTIONS = [
   {
@@ -57,34 +58,33 @@ function cellClass(value, opts = {}) {
   return 'text-slate-700'
 }
 
-export default function CashFlowTab({ inputs, results }) {
+export default function CashFlowTab({ inputs, results, allResults, selectedExit, setSelectedExit }) {
   const { yearlyData, totalInitialOutlay, exitYear, salePrice, outstandLoan,
           totalSellCosts, cgtPayable, netProceeds, capitalGain } = results
 
-  // Only show up to selected exit year
   const visibleYears = yearlyData.filter(y => y.year <= exitYear)
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-navy">Cash Flow Model</h2>
-          <p className="text-sm text-slate-500 mt-0.5">
-            {inputs.lvr}% LVR · {inputs.rateScenario} rate · Exit Year {exitYear} · Annual figures
-          </p>
+    <div className="space-y-5">
+
+      {/* ── Exit selector ─────────────────────────────────────────── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-navy">Exit Scenarios</h3>
+          <span className="text-xs text-slate-400">{inputs.lvr}% LVR · {inputs.rateScenario} rate · Annual figures</span>
         </div>
-        <div className="flex items-center gap-3 text-xs">
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-200 border border-amber-400 inline-block"></span>Exit year</span>
-        </div>
+        <ExitSelector selectedExit={selectedExit} setSelectedExit={setSelectedExit} allResults={allResults} />
       </div>
 
-      {/* ── Table with sticky first col + header ─────────────────── */}
+      {/* ── Table ─────────────────────────────────────────────────── */}
       <div className="card overflow-hidden">
-        <div className="cf-table-container overflow-auto" style={{ maxHeight: '70vh' }}>
+        <div
+          className="cf-table-container overflow-auto"
+          style={{ maxHeight: 'calc(100vh - 320px)', minHeight: '500px' }}
+        >
           <table className="min-w-full text-xs border-collapse">
             <thead>
               <tr className="bg-navy text-white" style={{ position: 'sticky', top: 0, zIndex: 20 }}>
-                {/* Sticky corner */}
                 <th
                   className="bg-navy px-4 py-3 text-left font-semibold w-52 whitespace-nowrap"
                   style={{ position: 'sticky', left: 0, zIndex: 30 }}
@@ -106,7 +106,7 @@ export default function CashFlowTab({ inputs, results }) {
             </thead>
 
             <tbody>
-              {/* Initial outlay row */}
+              {/* Initial outlay */}
               <tr className="bg-slate-100 border-b border-slate-300">
                 <td
                   className="bg-slate-100 px-4 py-2 font-semibold text-slate-700 whitespace-nowrap"
@@ -114,7 +114,7 @@ export default function CashFlowTab({ inputs, results }) {
                 >
                   Initial Outlay
                 </td>
-                <td className="px-3 py-2 text-center font-semibold text-red-600">
+                <td className="px-3 py-2 text-right font-semibold text-red-600">
                   {fmtCurrency(-totalInitialOutlay)}
                 </td>
                 {visibleYears.slice(1).map(y => (
@@ -134,7 +134,7 @@ export default function CashFlowTab({ inputs, results }) {
                     </td>
                   </tr>
                   {section.rows.map((row, ri) => (
-                    <tr key={row.key} className={`border-b border-slate-100 hover:bg-slate-50 ${ri % 2 === 0 ? '' : 'bg-slate-50/40'}`}>
+                    <tr key={row.key} className={`border-b border-slate-100 hover:bg-slate-50/60 ${ri % 2 === 0 ? '' : 'bg-slate-50/30'}`}>
                       <td
                         className={`bg-white px-4 py-1.5 whitespace-nowrap ${
                           row.bold ? 'font-semibold text-slate-800' : row.muted ? 'text-slate-400 pl-6' : 'text-slate-600'
@@ -160,7 +160,7 @@ export default function CashFlowTab({ inputs, results }) {
                 </React.Fragment>
               ))}
 
-              {/* ── Weekly / Monthly rows ───────────────────────── */}
+              {/* Weekly / Monthly rows */}
               <tr className="bg-navy/5 border-t-2 border-navy/20">
                 <td
                   className="bg-navy/5 px-4 py-2 font-bold text-navy whitespace-nowrap text-xs uppercase tracking-wide"
@@ -200,18 +200,17 @@ export default function CashFlowTab({ inputs, results }) {
       </div>
 
       {/* ── Exit analysis ─────────────────────────────────────────── */}
-      <div className="card border-l-4 border-gold overflow-hidden">
+      <div className="mt-8 card border-l-4 border-gold overflow-hidden">
         <div className="card-header bg-gold/5">
-          <span>🚪</span>
           <h3 className="font-semibold text-navy text-sm">Exit Analysis — Year {exitYear}</h3>
         </div>
         <div className="card-body">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-4">
             {[
-              { label: 'Sale Price',          value: fmtCurrency(salePrice),      color: 'text-navy' },
-              { label: 'Less: Outstanding Loan', value: fmtCurrency(-outstandLoan), color: 'text-red-600' },
-              { label: 'Less: Selling Costs', value: fmtCurrency(-totalSellCosts), color: 'text-red-600' },
-              { label: 'Less: CGT',           value: fmtCurrency(-cgtPayable),    color: 'text-red-600' },
+              { label: 'Sale Price',             value: fmtCurrency(salePrice),      color: 'text-navy' },
+              { label: 'Outstanding Loan',       value: fmtCurrency(-outstandLoan),  color: 'text-red-600' },
+              { label: 'Selling Costs',          value: fmtCurrency(-totalSellCosts),color: 'text-red-600' },
+              { label: 'CGT Payable',            value: fmtCurrency(-cgtPayable),    color: 'text-red-600' },
             ].map(m => (
               <div key={m.label}>
                 <div className={`text-xl font-bold ${m.color}`}>{m.value}</div>
@@ -219,8 +218,8 @@ export default function CashFlowTab({ inputs, results }) {
               </div>
             ))}
           </div>
-          <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-700">Net Proceeds (after all costs & CGT)</span>
+          <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+            <span className="text-sm font-semibold text-slate-700">Net Proceeds (after all costs &amp; CGT)</span>
             <span className={`text-2xl font-bold ${netProceeds >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {fmtCurrency(netProceeds)}
             </span>
