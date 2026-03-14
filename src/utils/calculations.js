@@ -176,7 +176,10 @@ export function calculateModel(inputs) {
 
     // Tax & negative gearing
     const taxableIncome   = netCFBeforeTax - annualDepreciation;
-    const negGearBenefit  = (negativeGearing && taxableIncome < 0)
+    // Neg gearing benefit only applies when property is cash-flow NEGATIVE (netCFBeforeTax < 0).
+    // Depreciation can create a taxable loss even on CF-positive properties, but we don't
+    // model that here — once the property is CF-positive it is no longer "negatively geared".
+    const negGearBenefit  = (negativeGearing && netCFBeforeTax < 0 && taxableIncome < 0)
       ? Math.abs(taxableIncome) * taxRate
       : 0;
     const netCFAfterTax   = netCFBeforeTax + negGearBenefit;
