@@ -1,14 +1,14 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Brain, BarChart2, Calculator, Receipt, Search, ArrowRight } from 'lucide-react'
+import { Brain, ChartBar, Calculator, Receipt, MagnifyingGlass, ArrowRight } from '@phosphor-icons/react'
 
 const TOOLS = [
   {
     path: '/quiz',
     icon: Brain,
     gradient: 'from-violet-500 to-purple-600',
-    iconBg: 'bg-violet-100',
-    iconColor: 'text-violet-600',
+    iconBg: 'bg-violet-200',
+    iconColor: 'text-violet-700',
     step: '01',
     title: 'Investor Profile',
     tagline: 'What type of investor are you?',
@@ -17,9 +17,9 @@ const TOOLS = [
   },
   {
     path: '/calculator',
-    icon: BarChart2,
+    icon: ChartBar,
     gradient: 'from-navy to-blue-700',
-    iconBg: 'bg-blue-100',
+    iconBg: 'bg-blue-200',
     iconColor: 'text-navy',
     step: '02',
     title: 'Cash Flow Model',
@@ -32,8 +32,8 @@ const TOOLS = [
     path: '/borrowing',
     icon: Calculator,
     gradient: 'from-emerald-500 to-teal-600',
-    iconBg: 'bg-emerald-100',
-    iconColor: 'text-emerald-600',
+    iconBg: 'bg-emerald-200',
+    iconColor: 'text-emerald-700',
     step: '03',
     title: 'Borrowing Power',
     tagline: 'How much can you borrow?',
@@ -44,8 +44,8 @@ const TOOLS = [
     path: '/stamp-duty',
     icon: Receipt,
     gradient: 'from-amber-500 to-orange-500',
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600',
+    iconBg: 'bg-amber-200',
+    iconColor: 'text-amber-700',
     step: '04',
     title: 'Stamp Duty',
     tagline: 'What\'s the total upfront cost?',
@@ -54,10 +54,10 @@ const TOOLS = [
   },
   {
     path: '/research',
-    icon: Search,
+    icon: MagnifyingGlass,
     gradient: 'from-slate-400 to-slate-500',
-    iconBg: 'bg-slate-100',
-    iconColor: 'text-slate-400',
+    iconBg: 'bg-slate-200',
+    iconColor: 'text-slate-500',
     step: '05',
     title: 'Property Research',
     tagline: 'Due diligence on any listing',
@@ -109,7 +109,7 @@ export default function HomeScreen() {
                 <div className="flex items-start justify-between mb-4">
                   {/* Icon */}
                   <div className={`w-11 h-11 rounded-xl ${tool.iconBg} flex items-center justify-center`}>
-                    <Icon size={20} className={tool.iconColor} />
+                    <Icon size={20} weight="duotone" className={tool.iconColor} />
                   </div>
                   {/* Step number */}
                   <span className="text-xs font-bold text-slate-200 tabular-nums">{tool.step}</span>

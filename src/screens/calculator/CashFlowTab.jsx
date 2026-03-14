@@ -190,22 +190,24 @@ export default function CashFlowTab({ inputs, results, allResults, selectedExit,
                   </td>
                 ))}
               </tr>
-              {/* Weekly after neg gearing — solid bg-slate-50, NOT bg-navy/5 (transparent) */}
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <td
-                  className="bg-slate-50 px-4 py-2 font-bold text-navy whitespace-nowrap text-xs uppercase tracking-wide"
-                  style={{ position: 'sticky', left: 0, zIndex: 10 }}
-                >
-                  Weekly CF (after neg. gearing)
-                </td>
-                {visibleYears.map(y => (
-                  <td key={y.year} className={`px-3 py-2 text-right font-semibold whitespace-nowrap text-xs ${
-                    y.year === exitYear ? 'bg-amber-50' : 'bg-slate-50'
-                  } ${y.weeklyNetAfter >= 0 ? 'text-emerald-600' : 'text-amber-700'}`}>
-                    {`${y.weeklyNetAfter >= 0 ? '+' : ''}$${Math.abs(y.weeklyNetAfter).toFixed(0)}/wk`}
+              {/* Weekly after neg gearing — only shown when neg gearing is ON */}
+              {inputs.negativeGearing && (
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <td
+                    className="bg-slate-50 px-4 py-2 font-bold text-navy whitespace-nowrap text-xs uppercase tracking-wide"
+                    style={{ position: 'sticky', left: 0, zIndex: 10 }}
+                  >
+                    Weekly CF (after neg. gearing)
                   </td>
-                ))}
-              </tr>
+                  {visibleYears.map(y => (
+                    <td key={y.year} className={`px-3 py-2 text-right font-semibold whitespace-nowrap text-xs ${
+                      y.year === exitYear ? 'bg-amber-50' : 'bg-slate-50'
+                    } ${y.weeklyNetAfter >= 0 ? 'text-emerald-600' : 'text-amber-700'}`}>
+                      {`${y.weeklyNetAfter >= 0 ? '+' : ''}$${Math.abs(y.weeklyNetAfter).toFixed(0)}/wk`}
+                    </td>
+                  ))}
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -56,6 +56,7 @@ export function calculateModel(inputs) {
     dwellingAge,         // years e.g. 16
     dwellingDuration,    // years e.g. 40
     landValuePct,        // % e.g. 40
+    depreciationRatePct, // % e.g. 2.5 (ATO Div 43 flat-line rate)
 
     // Financing
     lvr,                 // % e.g. 80 or 88
@@ -100,10 +101,13 @@ export function calculateModel(inputs) {
   const pmRate     = pmFeesPct / 100;
   const agentRate  = agentCommission / 100;
 
-  // ── Dwelling depreciation (formula-driven, consistent across LVR scenarios) ──
+  // ── Dwelling depreciation (ATO Div 43 method) ────────────────────────────
+  // Gross up current dwelling value to estimate original construction cost,
+  // then apply the flat-line rate to that original cost each year.
+  // Formula: originalCost = dwellingAtPurchase / (1 - depRate)^dwellingAge
   const dwellingAtPurchase = purchasePrice * (1 - landPct);
-  const usefulLife         = Math.max(1, dwellingDuration - dwellingAge);
-  const annualDepreciation = dwellingAtPurchase / usefulLife;
+  const depRate            = (depreciationRatePct ?? 2.5) / 100;
+  const annualDepreciation = dwellingAtPurchase * depRate / Math.pow(1 - depRate, dwellingAge);
 
   // ── Loan setup ────────────────────────────────────────────────────────────
   const loanBase       = purchasePrice * lvrDec;
@@ -226,7 +230,8 @@ export function calculateModel(inputs) {
   const outstandLoan  = exitData.loanClosing;
   const agentFees     = salePrice * agentRate;
   const totalSellCosts = agentFees + fixedSellingCosts;
-  const capitalGain   = salePrice - purchasePrice;
+  // Selling costs reduce the taxable gain (net sale proceeds minus original cost)
+  const capitalGain   = salePrice - purchasePrice - totalSellCosts;
   const taxableGain   = capitalGain * 0.5; // 50% CGT discount (held > 12 months)
   const cgtPayable    = Math.max(0, taxableGain * taxRate);
   const netProceeds   = salePrice - outstandLoan - totalSellCosts - cgtPayable;

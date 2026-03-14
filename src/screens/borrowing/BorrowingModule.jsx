@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { DollarSign, Percent, TrendingUp, Home } from 'lucide-react'
+import { CurrencyDollar, Percent, TrendUp, House } from '@phosphor-icons/react'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -92,10 +92,10 @@ function NumberInput({ value, onChange, prefix, suffix }) {
 // ── Bank links ────────────────────────────────────────────────────────────────
 
 const BANKS = [
-  { name: 'CommBank', color: 'bg-yellow-400', url: 'https://www.commbank.com.au/home-loans/calculators/how-much-can-i-borrow.html' },
-  { name: 'ANZ', color: 'bg-blue-600', url: 'https://www.anz.com.au/personal/home-loans/calculators-tools/how-much-borrow/' },
-  { name: 'Westpac', color: 'bg-red-600', url: 'https://www.westpac.com.au/personal-banking/home-loans/calculator/borrowing-power-calculator/' },
-  { name: 'NAB', color: 'bg-red-700', url: 'https://www.nab.com.au/personal/home-loans/calculators/borrowing-power-calculator' },
+  { name: 'CommBank', color: 'bg-yellow-400', url: 'https://www.commbank.com.au/digital/home-loans/calculator/how-much-can-i-borrow' },
+  { name: 'ANZ', color: 'bg-blue-600', url: 'https://www.anz.com.au/personal/home-loans/calculators-tools/borrowing-power-calculator/' },
+  { name: 'Westpac', color: 'bg-red-600', url: 'https://www.westpac.com.au/personal-banking/home-loans/calculator/mortgage-calculator/' },
+  { name: 'NAB', color: 'bg-red-700', url: 'https://www.nab.com.au/personal/home-loans' },
 ]
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -115,20 +115,20 @@ export default function BorrowingModule() {
       label: 'Max borrowing capacity',
       value: fmt(result.maxLoan),
       sub: 'Based on income surplus',
-      icon: TrendingUp,
+      icon: TrendUp,
       highlight: true,
     },
     {
       label: 'Max purchase price',
       value: fmt(result.maxPurchase),
       sub: `Loan + ${fmt(deposit)} deposit`,
-      icon: Home,
+      icon: House,
     },
     {
       label: 'Est. monthly repayment',
       value: fmt(result.monthlyRepayment),
       sub: 'P&I, 30 years, on max loan',
-      icon: DollarSign,
+      icon: CurrencyDollar,
     },
     {
       label: 'Deposit / purchase price',
@@ -223,7 +223,7 @@ export default function BorrowingModule() {
                         <div className="flex items-start justify-between mb-2">
                           <p className="text-xs text-slate-500 font-medium leading-tight pr-2">{m.label}</p>
                           <div className={`p-1.5 rounded-lg flex-shrink-0 ${m.highlight ? 'bg-navy/10' : 'bg-slate-100'}`}>
-                            <Icon size={14} className={m.highlight ? 'text-navy' : 'text-slate-400'} />
+                            <Icon size={14} weight="duotone" className={m.highlight ? 'text-navy' : 'text-slate-400'} />
                           </div>
                         </div>
                         <p className={`text-2xl font-bold ${m.highlight ? 'text-navy' : m.warn ? 'text-amber-600' : 'text-slate-800'}`}>

@@ -7,9 +7,9 @@ import ChartsTab from './ChartsTab'
 
 export const DEFAULT_INPUTS = {
   // ── Core ──────────────────────────────────────────────────────
-  purchasePrice:    730000,
+  purchasePrice:    850000,
   weeklyRent:       500,
-  lvr:              80,
+  lvr:              88,
   rateScenario:     'base',
   taxBracket:       45,
   negativeGearing:  true,
@@ -23,13 +23,14 @@ export const DEFAULT_INPUTS = {
   },
 
   // ── Property assumptions ──────────────────────────────────────
-  capitalGrowth:    6,
+  capitalGrowth:    8,
   rentalGrowth:     6,
   occupancyRate:    95,
   expenseGrowth:    3,
-  landValuePct:     40,
-  dwellingAge:      16,
-  dwellingDuration: 40,
+  landValuePct:        40,
+  dwellingAge:         16,
+  dwellingDuration:    40,
+  depreciationRatePct: 2.5,
 
   // ── Ongoing costs ─────────────────────────────────────────────
   maintenance:      2000,

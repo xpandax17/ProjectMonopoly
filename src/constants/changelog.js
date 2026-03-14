@@ -1,6 +1,17 @@
 export const CHANGELOG = [
   {
-    version: '3.0',
+    version: '0.4',
+    date: 'Mar 2026',
+    changes: [
+      'Calculator accuracy: fixed depreciation to use ATO Div 43 method (original construction cost gross-up)',
+      'Calculator accuracy: fixed CGT — selling costs now correctly reduce taxable capital gain',
+      'Added Depreciation Rate input (default 2.5%) in Advanced settings',
+      'UI refresh: Phosphor Icons (duotone), DM Serif Display headings, DM Sans body, card depth shadows',
+      'Changelog versioning changed to v0.x (pre-launch)',
+    ],
+  },
+  {
+    version: '0.3',
     date: 'Mar 2026',
     changes: [
       'UI overhaul: left sidebar nav replacing top header, clean Mouon/Moneda-inspired design',
@@ -13,7 +24,7 @@ export const CHANGELOG = [
     ],
   },
   {
-    version: '2.0',
+    version: '0.2',
     date: 'Mar 2026',
     changes: [
       'Added Module 1: Investor type quiz — 12 questions, 5 archetypes',
@@ -27,7 +38,7 @@ export const CHANGELOG = [
     ],
   },
   {
-    version: '1.0',
+    version: '0.1',
     date: 'Mar 2026',
     changes: [
       'Initial launch: 20-year property cash flow calculator',

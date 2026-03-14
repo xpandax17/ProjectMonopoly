@@ -1,18 +1,18 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
-  Home, Brain, BarChart2, Calculator, Receipt, Search,
-  Building2, ChevronRight, Clock
-} from 'lucide-react'
+  House, Brain, ChartBar, Calculator, Receipt, MagnifyingGlass,
+  Buildings, CaretRight, Clock, ChartLineUp
+} from '@phosphor-icons/react'
 import { CHANGELOG } from '../constants/changelog'
 
 const NAV_ITEMS = [
-  { path: '/',            icon: Home,       label: 'Home'            },
-  { path: '/quiz',        icon: Brain,      label: 'Investor Quiz'   },
-  { path: '/calculator',  icon: BarChart2,  label: 'Cash Flow Model' },
-  { path: '/borrowing',   icon: Calculator, label: 'Borrowing Power' },
-  { path: '/stamp-duty',  icon: Receipt,    label: 'Stamp Duty'      },
-  { path: '/research',    icon: Search,     label: 'Property Research', disabled: true },
+  { path: '/',            icon: House,           label: 'Home'            },
+  { path: '/quiz',        icon: Brain,           label: 'Investor Quiz'   },
+  { path: '/calculator',  icon: ChartBar,        label: 'Cash Flow Model' },
+  { path: '/borrowing',   icon: Calculator,      label: 'Borrowing Power' },
+  { path: '/stamp-duty',  icon: Receipt,         label: 'Stamp Duty'      },
+  { path: '/research',    icon: MagnifyingGlass, label: 'Property Research', disabled: true },
 ]
 
 function ChangelogModal({ onClose }) {
@@ -73,7 +73,7 @@ export default function Sidebar() {
             className="flex items-center gap-3 hover:opacity-90 transition-opacity w-full text-left"
           >
             <div className="w-9 h-9 bg-gold rounded-lg flex items-center justify-center flex-shrink-0">
-              <Building2 size={18} className="text-navy" />
+              <Buildings size={18} weight="duotone" className="text-navy" />
             </div>
             <div>
               <div className="font-playfair text-white font-bold text-base leading-tight">Project Monopoly</div>
@@ -107,16 +107,16 @@ export default function Sidebar() {
                   }
                 `}
               >
-                <Icon size={16} className="flex-shrink-0" />
+                <Icon size={16} weight="duotone" className="flex-shrink-0" />
                 <span className="flex-1">{item.label}</span>
                 {isDisabled && (
                   <span className="text-xs bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded-full flex items-center gap-1">
-                    <Clock size={9} />
+                    <Clock size={9} weight="duotone" />
                     Soon
                   </span>
                 )}
                 {isActive && !isDisabled && (
-                  <ChevronRight size={13} className="text-gold/60 flex-shrink-0" />
+                  <CaretRight size={13} weight="bold" className="text-gold/60 flex-shrink-0" />
                 )}
               </button>
             )

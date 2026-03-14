@@ -4,8 +4,11 @@
 
 @layer base {
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'DM Sans', 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .font-playfair {
+    font-family: 'DM Serif Display', 'Playfair Display', serif;
   }
 }
 
@@ -20,6 +23,7 @@
   /* ── Cards ──────────────────────────────────────────────────── */
   .card {
     @apply bg-white rounded-xl border border-slate-200;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   }
   .card-header {
     @apply px-5 py-4 border-b border-slate-100 flex items-center gap-2;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { fmtCurrency, fmtPct, fmtMultiple, fmtWeekly } from '../../utils/calculations'
-import { Home, TrendingUp, Landmark, BadgePercent, Settings, ChevronDown } from 'lucide-react'
+import { House, TrendUp, Bank, Percent, Gear, CaretDown } from '@phosphor-icons/react'
 
 // ── NumberInput — allows deleting all digits without snapping back ────────────
 
@@ -115,7 +115,7 @@ function SectionCard({ icon: Icon, title, badge, children }) {
     <div className="card">
       <div className="card-header">
         <div className="w-7 h-7 rounded-lg bg-navy/8 flex items-center justify-center flex-shrink-0">
-          <Icon size={14} className="text-navy" />
+          <Icon size={14} weight="duotone" className="text-navy" />
         </div>
         <h3 className="font-semibold text-navy text-sm">{title}</h3>
         {badge && <span className="ml-auto text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">{badge}</span>}
@@ -136,7 +136,7 @@ export function ExitSelector({ selectedExit, setSelectedExit, allResults }) {
         const res = yr === 5 ? allResults?.y5 : yr === 10 ? allResults?.y10 : allResults?.y15
         const selected = selectedExit === yr
         if (!res) return null
-        const { irr, netProceeds, equityMultiple, weeklyY1After } = res
+        const { irr, netProceeds, equityMultiple, totalInitialOutlay } = res
         return (
           <button
             key={yr}
@@ -164,8 +164,8 @@ export function ExitSelector({ selectedExit, setSelectedExit, allResults }) {
                 <div className="text-xs text-slate-400">Net proceeds after CGT</div>
               </div>
               <div>
-                <div className={`text-sm font-semibold ${weeklyY1After >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{fmtWeekly(weeklyY1After)}</div>
-                <div className="text-xs text-slate-400">Weekly cost Y1</div>
+                <div className="text-sm font-semibold text-slate-600">{fmtCurrency(totalInitialOutlay)}</div>
+                <div className="text-xs text-slate-400">Initial cash outlay</div>
               </div>
             </div>
           </button>
@@ -186,7 +186,9 @@ export default function InputsTab({ inputs, update, updateRate, allResults, sele
     inputs.renovation + inputs.otherCosts
   const totalPurchCosts = inputs.stampDuty + totalOtherPurchCosts
   const totalSellCosts = inputs.auctionFees + inputs.marketingFees + inputs.bankDischargeFee + inputs.conveyancingSale
-  const annualDepr = inputs.purchasePrice * (1 - inputs.landValuePct / 100) / Math.max(1, inputs.dwellingDuration - inputs.dwellingAge)
+  const _depRate   = (inputs.depreciationRatePct ?? 2.5) / 100
+  const _dwelling  = inputs.purchasePrice * (1 - inputs.landValuePct / 100)
+  const annualDepr = _dwelling * _depRate / Math.pow(1 - _depRate, inputs.dwellingAge)
 
   return (
     <div className="space-y-5">
@@ -201,7 +203,7 @@ export default function InputsTab({ inputs, update, updateRate, allResults, sele
       </div>
 
       {/* ── Section 1: Property ──────────────────────────────────── */}
-      <SectionCard icon={Home} title="Property">
+      <SectionCard icon={House} title="Property">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <Field label="Purchase Price">
             <NumberInput value={inputs.purchasePrice} onChange={v => update('purchasePrice', v)} prefix="$" min={0} />
@@ -216,7 +218,7 @@ export default function InputsTab({ inputs, update, updateRate, allResults, sele
       </SectionCard>
 
       {/* ── Section 2: Growth Assumptions ───────────────────────── */}
-      <SectionCard icon={TrendingUp} title="Growth Assumptions">
+      <SectionCard icon={TrendUp} title="Growth Assumptions">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <Field label="Capital Growth p.a.">
             <NumberInput value={inputs.capitalGrowth} onChange={v => update('capitalGrowth', v)} suffix="%" min={0} max={20} decimals={1} />
@@ -231,7 +233,7 @@ export default function InputsTab({ inputs, update, updateRate, allResults, sele
       </SectionCard>
 
       {/* ── Section 3: Financing ─────────────────────────────────── */}
-      <SectionCard icon={Landmark} title="Financing">
+      <SectionCard icon={Bank} title="Financing">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
           <Field label="Loan-to-Value Ratio">
             <SegmentedControl
@@ -313,7 +315,7 @@ export default function InputsTab({ inputs, update, updateRate, allResults, sele
       </SectionCard>
 
       {/* ── Section 4: Tax & Structure ───────────────────────────── */}
-      <SectionCard icon={BadgePercent} title="Tax &amp; Structure">
+      <SectionCard icon={Percent} title="Tax &amp; Structure">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Field label="Marginal Tax Bracket" hint="Your personal income tax rate">
             <NumberInput value={inputs.taxBracket} onChange={v => update('taxBracket', v)} suffix="%" min={0} max={50} />
@@ -336,13 +338,13 @@ export default function InputsTab({ inputs, update, updateRate, allResults, sele
           className="w-full card-header hover:bg-slate-50 transition-colors text-left"
         >
           <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-            <Settings size={14} className="text-slate-500" />
+            <Gear size={14} weight="duotone" className="text-slate-500" />
           </div>
           <h3 className="font-semibold text-slate-600 text-sm flex-1">Advanced Settings</h3>
           <span className="text-xs text-slate-400 mr-2">
             Purchase costs {fmtCurrency(totalPurchCosts)} · Depreciation {fmtCurrency(annualDepr)}/yr
           </span>
-          <ChevronDown size={16} className={`text-slate-400 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+          <CaretDown size={16} weight="bold" className={`text-slate-400 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
         </button>
 
         {showAdvanced && (
@@ -355,6 +357,9 @@ export default function InputsTab({ inputs, update, updateRate, allResults, sele
                 <div className="space-y-4">
                   <Field label="Land Value %">
                     <NumberInput value={inputs.landValuePct} onChange={v => update('landValuePct', v)} suffix="%" min={10} max={90} />
+                  </Field>
+                  <Field label="Depreciation Rate (ATO Div 43)" hint="Standard residential = 2.5%">
+                    <NumberInput value={inputs.depreciationRatePct ?? 2.5} onChange={v => update('depreciationRatePct', v)} suffix="%" min={0} max={5} decimals={2} noComma />
                   </Field>
                   <Field label="Dwelling Age at Purchase">
                     <NumberInput value={inputs.dwellingAge} onChange={v => update('dwellingAge', v)} suffix="yrs" min={0} max={40} />
