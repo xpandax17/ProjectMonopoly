@@ -13,12 +13,16 @@ function fmtPct(n) {
   return n.toFixed(1) + '%'
 }
 
-function calcBorrowingPower({ grossIncome, monthlyExpenses, deposit, interestRate }) {
+function calcBorrowingPower({ grossIncome, rentalIncome, monthlyExpenses, existingRepayments, deposit, interestRate }) {
+  // Net monthly income (after ~30% effective tax), + rental income (taxed at effective rate)
   const netMonthly = (grossIncome * 0.70) / 12
-  const surplus = netMonthly - monthlyExpenses
+  const netRentalMonthly = rentalIncome / 12 * 0.70  // rough 30% tax on rental income
+
+  // Surplus after living expenses and existing debt commitments
+  const surplus = netMonthly + netRentalMonthly - monthlyExpenses - existingRepayments
   if (surplus <= 0) return null
 
-  const maxRepayment = surplus * 0.80
+  const maxRepayment = surplus * 0.80  // 20% buffer (lender HEM buffer)
   const monthlyRate = interestRate / 100 / 12
   const n = 360 // 30-year term
 
@@ -35,43 +39,52 @@ function calcBorrowingPower({ grossIncome, monthlyExpenses, deposit, interestRat
     monthlyRepayment: Math.max(0, monthlyRepayment),
     lvr,
     depositPct: maxPurchase > 0 ? (deposit / maxPurchase) * 100 : 0,
+    netMonthly,
+    netRentalMonthly,
+    surplus,
+    maxRepayment,
   }
 }
 
-// ── Number Input ──────────────────────────────────────────────────────────────
+// ── Number Input with comma formatting ───────────────────────────────────────
 
 function NumberInput({ value, onChange, prefix, suffix }) {
   const [local, setLocal] = useState(String(value))
+  const [focused, setFocused] = useState(false)
 
   useEffect(() => {
     const parsed = parseFloat(local)
     if (isNaN(parsed) || parsed !== value) setLocal(String(value))
   }, [value])
 
+  const formatCommas = (raw) => {
+    const num = parseFloat(raw)
+    if (isNaN(num) || num < 1000) return raw
+    return Math.round(num).toLocaleString('en-AU')
+  }
+
   return (
     <div className="relative flex items-center">
-      {prefix && (
-        <span className="absolute left-3 text-slate-400 text-sm pointer-events-none">{prefix}</span>
-      )}
+      {prefix && <span className="absolute left-3 text-slate-400 text-sm pointer-events-none">{prefix}</span>}
       <input
         type="text"
         inputMode="decimal"
-        value={local}
+        value={focused ? local : formatCommas(local)}
         onChange={e => {
           setLocal(e.target.value)
           const p = parseFloat(e.target.value)
           if (!isNaN(p) && p >= 0) onChange(p)
         }}
+        onFocus={() => setFocused(true)}
         onBlur={() => {
+          setFocused(false)
           const p = parseFloat(local)
           if (isNaN(p)) setLocal(String(value))
           else setLocal(String(p))
         }}
         className={`input-field ${prefix ? 'pl-7' : ''} ${suffix ? 'pr-8' : ''}`}
       />
-      {suffix && (
-        <span className="absolute right-3 text-slate-400 text-sm pointer-events-none">{suffix}</span>
-      )}
+      {suffix && <span className="absolute right-3 text-slate-400 text-sm pointer-events-none">{suffix}</span>}
     </div>
   )
 }
@@ -89,11 +102,13 @@ const BANKS = [
 
 export default function BorrowingModule() {
   const [grossIncome, setGrossIncome] = useState(120000)
+  const [rentalIncome, setRentalIncome] = useState(0)
   const [monthlyExpenses, setMonthlyExpenses] = useState(3000)
+  const [existingRepayments, setExistingRepayments] = useState(0)
   const [deposit, setDeposit] = useState(100000)
   const [interestRate, setInterestRate] = useState(6.0)
 
-  const result = calcBorrowingPower({ grossIncome, monthlyExpenses, deposit, interestRate })
+  const result = calcBorrowingPower({ grossIncome, rentalIncome, monthlyExpenses, existingRepayments, deposit, interestRate })
 
   const metrics = result ? [
     {
@@ -106,7 +121,7 @@ export default function BorrowingModule() {
     {
       label: 'Max purchase price',
       value: fmt(result.maxPurchase),
-      sub: `Loan + $${Math.round(deposit / 1000)}k deposit`,
+      sub: `Loan + ${fmt(deposit)} deposit`,
       icon: Home,
     },
     {
@@ -137,21 +152,51 @@ export default function BorrowingModule() {
 
           {/* Inputs */}
           <div className="lg:col-span-2 space-y-4">
+
+            {/* Income */}
             <div className="card">
               <div className="card-header">
-                <span className="text-sm font-semibold text-navy">Your Situation</span>
+                <span className="text-sm font-semibold text-navy">Your Income</span>
               </div>
               <div className="card-body space-y-4">
                 <div>
                   <label className="label">Gross annual income</label>
                   <NumberInput value={grossIncome} onChange={setGrossIncome} prefix="$" />
-                  <p className="field-hint">Before tax, all sources</p>
+                  <p className="field-hint">Before tax, all employment sources</p>
                 </div>
+                <div>
+                  <label className="label">Annual rental income (other properties)</label>
+                  <NumberInput value={rentalIncome} onChange={setRentalIncome} prefix="$" />
+                  <p className="field-hint">Gross rent from existing investment properties</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Expenses & liabilities */}
+            <div className="card">
+              <div className="card-header">
+                <span className="text-sm font-semibold text-navy">Expenses &amp; Liabilities</span>
+              </div>
+              <div className="card-body space-y-4">
                 <div>
                   <label className="label">Monthly living expenses</label>
                   <NumberInput value={monthlyExpenses} onChange={setMonthlyExpenses} prefix="$" />
-                  <p className="field-hint">Rent, food, bills, subscriptions — not a mortgage</p>
+                  <p className="field-hint">Rent/mortgage, food, bills, subscriptions</p>
                 </div>
+                <div>
+                  <label className="label">Monthly existing loan repayments</label>
+                  <NumberInput value={existingRepayments} onChange={setExistingRepayments} prefix="$" />
+                  <p className="field-hint">Car loans, personal loans, other mortgages</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Deposit & rate */}
+            <div className="card">
+              <div className="card-header">
+                <span className="text-sm font-semibold text-navy">Deposit &amp; Rate</span>
+              </div>
+              <div className="card-body space-y-4">
                 <div>
                   <label className="label">Available deposit</label>
                   <NumberInput value={deposit} onChange={setDeposit} prefix="$" />
@@ -174,7 +219,7 @@ export default function BorrowingModule() {
                   {metrics.map((m, i) => {
                     const Icon = m.icon
                     return (
-                      <div key={i} className={`card p-4 ${m.highlight ? 'border-navy/30 bg-navy/2' : ''}`}>
+                      <div key={i} className={`card p-4 ${m.highlight ? 'border-navy/30' : ''}`}>
                         <div className="flex items-start justify-between mb-2">
                           <p className="text-xs text-slate-500 font-medium leading-tight pr-2">{m.label}</p>
                           <div className={`p-1.5 rounded-lg flex-shrink-0 ${m.highlight ? 'bg-navy/10' : 'bg-slate-100'}`}>
@@ -196,12 +241,15 @@ export default function BorrowingModule() {
                   <div className="space-y-1.5 text-sm">
                     {[
                       { label: 'Gross annual income', val: fmt(grossIncome) },
-                      { label: 'Est. net monthly income (~70%)', val: fmt((grossIncome * 0.70) / 12) },
-                      { label: 'Monthly expenses', val: `- ${fmt(monthlyExpenses)}` },
-                      { label: 'Monthly surplus', val: fmt((grossIncome * 0.70) / 12 - monthlyExpenses) },
-                      { label: 'Max repayment (80% of surplus)', val: fmt(((grossIncome * 0.70) / 12 - monthlyExpenses) * 0.80) },
+                      ...(rentalIncome > 0 ? [{ label: 'Annual rental income', val: fmt(rentalIncome) }] : []),
+                      { label: 'Est. net monthly income (~70% effective rate)', val: fmt(result.netMonthly) },
+                      ...(rentalIncome > 0 ? [{ label: 'Net rental (after tax)', val: `+ ${fmt(result.netRentalMonthly)}` }] : []),
+                      { label: 'Monthly living expenses', val: `- ${fmt(monthlyExpenses)}` },
+                      ...(existingRepayments > 0 ? [{ label: 'Existing loan repayments', val: `- ${fmt(existingRepayments)}` }] : []),
+                      { label: 'Monthly surplus', val: fmt(result.surplus), bold: true },
+                      { label: 'Max repayment (80% of surplus)', val: fmt(result.maxRepayment), bold: true },
                     ].map((row, i) => (
-                      <div key={i} className={`flex justify-between ${i === 4 ? 'pt-1.5 border-t border-slate-100 font-semibold text-navy' : 'text-slate-600'}`}>
+                      <div key={i} className={`flex justify-between ${row.bold ? 'pt-1.5 border-t border-slate-100 font-semibold text-navy' : 'text-slate-600'}`}>
                         <span>{row.label}</span>
                         <span>{row.val}</span>
                       </div>
@@ -211,10 +259,10 @@ export default function BorrowingModule() {
 
                 {/* Disclaimer */}
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-700 leading-relaxed">
-                  <strong>Indicative only.</strong> This proxy assumes ~30% effective tax rate and 80% income serviceability. Your actual borrowing capacity depends on credit history, existing debts, number of dependants, and each lender's individual assessment criteria. Always speak to a mortgage broker.
+                  <strong>Indicative only.</strong> This proxy assumes ~30% effective tax rate and 80% income serviceability. Your actual borrowing capacity depends on credit history, existing debts, number of dependants, HEM benchmarks, and each lender's individual assessment criteria. Always speak to a mortgage broker.
                 </div>
 
-                {/* Bank calculator links */}
+                {/* Bank links */}
                 <div className="card p-4">
                   <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Get a lender estimate</h4>
                   <div className="grid grid-cols-2 gap-2">
@@ -235,7 +283,7 @@ export default function BorrowingModule() {
               </>
             ) : (
               <div className="card p-8 text-center text-slate-400">
-                <p className="text-sm">Your expenses exceed estimated net income — adjust inputs to see results.</p>
+                <p className="text-sm">Monthly surplus is zero or negative — reduce expenses or increase income to see results.</p>
               </div>
             )}
           </div>

@@ -8,15 +8,22 @@ function fmt(n) {
   return '$' + Math.round(n).toLocaleString()
 }
 
-// ── Number Input ──────────────────────────────────────────────────────────────
+// ── Number Input with comma formatting ───────────────────────────────────────
 
 function NumberInput({ value, onChange, prefix, suffix }) {
   const [local, setLocal] = React.useState(String(value))
+  const [focused, setFocused] = React.useState(false)
 
   React.useEffect(() => {
     const p = parseFloat(local)
     if (isNaN(p) || p !== value) setLocal(String(value))
   }, [value])
+
+  const formatCommas = (raw) => {
+    const num = parseFloat(raw)
+    if (isNaN(num) || num < 1000) return raw
+    return Math.round(num).toLocaleString('en-AU')
+  }
 
   return (
     <div className="relative flex items-center">
@@ -24,13 +31,15 @@ function NumberInput({ value, onChange, prefix, suffix }) {
       <input
         type="text"
         inputMode="decimal"
-        value={local}
+        value={focused ? local : formatCommas(local)}
         onChange={e => {
           setLocal(e.target.value)
           const p = parseFloat(e.target.value)
           if (!isNaN(p) && p >= 0) onChange(p)
         }}
+        onFocus={() => setFocused(true)}
         onBlur={() => {
+          setFocused(false)
           const p = parseFloat(local)
           if (isNaN(p)) setLocal(String(value))
           else setLocal(String(p))
@@ -68,6 +77,7 @@ export default function StampDutyModule() {
   const [isFHB, setIsFHB] = useState(false)
   const [deposit, setDeposit] = useState(140000)
   const [conveyancer, setConveyancer] = useState(1500)
+  const [otherCosts, setOtherCosts] = useState(0)
   const [includeBP, setIncludeBP] = useState(true)
   const bpCost = 600
 
@@ -75,22 +85,22 @@ export default function StampDutyModule() {
     const duty = calcStampDuty(state, price, isFHB)
     const transferFee = TRANSFER_FEES[state] ? TRANSFER_FEES[state](price) : 0
     const lvr = price > 0 ? ((price - deposit) / price) * 100 : 0
-    // Rough LMI estimate — only if LVR > 80%
     const lmiEst = lvr > 80 ? Math.round((price - deposit) * 0.015) : 0
     const bp = includeBP ? bpCost : 0
-    const totalCosts = duty + transferFee + conveyancer + bp + lmiEst
+    const totalCosts = duty + transferFee + conveyancer + bp + lmiEst + otherCosts
     const totalCashRequired = deposit + totalCosts
 
     return { duty, transferFee, lvr, lmiEst, totalCosts, totalCashRequired }
-  }, [state, price, isFHB, deposit, conveyancer, includeBP])
+  }, [state, price, isFHB, deposit, conveyancer, includeBP, otherCosts])
 
   const stateOptions = Object.keys(STATE_LABELS).map(s => ({ value: s, label: s }))
 
   const lineItems = [
     { label: 'Stamp duty', value: results.duty, highlight: true },
     { label: 'Transfer registration fee', value: results.transferFee },
-    { label: 'Conveyancer / solicitor', value: conveyancer, editable: true },
+    { label: 'Conveyancer / solicitor', value: conveyancer },
     ...(includeBP ? [{ label: 'Building & pest inspection', value: bpCost }] : []),
+    ...(otherCosts > 0 ? [{ label: 'Other costs', value: otherCosts }] : []),
     ...(results.lmiEst > 0 ? [{ label: 'LMI (indicative)', value: results.lmiEst, warn: true }] : []),
   ]
 
@@ -114,11 +124,7 @@ export default function StampDutyModule() {
               <div className="card-body space-y-4">
                 <div>
                   <label className="label">State</label>
-                  <PillToggle
-                    options={stateOptions}
-                    value={state}
-                    onChange={setState}
-                  />
+                  <PillToggle options={stateOptions} value={state} onChange={setState} />
                 </div>
                 <div>
                   <label className="label">Purchase price</label>
@@ -166,6 +172,11 @@ export default function StampDutyModule() {
                   >
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${includeBP ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
+                </div>
+                <div>
+                  <label className="label">Other costs</label>
+                  <NumberInput value={otherCosts} onChange={setOtherCosts} prefix="$" />
+                  <p className="field-hint">Buyer's agent, inspection reports, moving costs, etc.</p>
                 </div>
               </div>
             </div>

@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import { fmtCurrency, fmtPct, fmtWeekly } from '../../utils/calculations'
+import { fmtCurrency, fmtPct, fmtMultiple, fmtWeekly } from '../../utils/calculations'
 import { Home, TrendingUp, Landmark, BadgePercent, Settings, ChevronDown } from 'lucide-react'
 
 // ── NumberInput — allows deleting all digits without snapping back ────────────
 
-function NumberInput({ value, onChange, prefix, suffix, min, max, decimals }) {
+function formatWithCommas(raw) {
+  const num = parseFloat(raw)
+  if (isNaN(num)) return raw
+  if (num < 1000) return raw
+  return Math.round(num).toLocaleString('en-AU')
+}
+
+function NumberInput({ value, onChange, prefix, suffix, min, max, decimals, noComma }) {
   const [localVal, setLocalVal] = useState(String(value))
+  const [focused, setFocused] = useState(false)
 
   useEffect(() => {
     // Only sync from parent if the parsed value differs (avoids overwriting "5." mid-type)
@@ -27,6 +35,7 @@ function NumberInput({ value, onChange, prefix, suffix, min, max, decimals }) {
   }
 
   const handleBlur = () => {
+    setFocused(false)
     const parsed = parseFloat(localVal)
     if (isNaN(parsed)) {
       setLocalVal(String(value)) // revert to last valid if user leaves empty
@@ -35,14 +44,17 @@ function NumberInput({ value, onChange, prefix, suffix, min, max, decimals }) {
     }
   }
 
+  const displayVal = (!focused && !noComma) ? formatWithCommas(localVal) : localVal
+
   return (
     <div className="relative flex items-center">
       {prefix && <span className="absolute left-3 text-slate-400 text-sm select-none pointer-events-none">{prefix}</span>}
       <input
         type="text"
         inputMode="decimal"
-        value={localVal}
+        value={displayVal}
         onChange={handleChange}
+        onFocus={() => setFocused(true)}
         onBlur={handleBlur}
         className={`input-field ${prefix ? 'pl-7' : ''} ${suffix ? 'pr-12' : ''}`}
       />
@@ -124,7 +136,7 @@ export function ExitSelector({ selectedExit, setSelectedExit, allResults }) {
         const res = yr === 5 ? allResults?.y5 : yr === 10 ? allResults?.y10 : allResults?.y15
         const selected = selectedExit === yr
         if (!res) return null
-        const { irr, netProceeds, weeklyY1After } = res
+        const { irr, netProceeds, equityMultiple, weeklyY1After } = res
         return (
           <button
             key={yr}
@@ -141,10 +153,14 @@ export function ExitSelector({ selectedExit, setSelectedExit, allResults }) {
             <div className="space-y-1.5">
               <div>
                 <div className={`text-xl font-bold ${irr > 0 ? 'text-emerald-600' : 'text-red-500'}`}>{fmtPct(irr)}</div>
-                <div className="text-xs text-slate-400">IRR</div>
+                <div className="text-xs text-slate-400">IRR (after CGT)</div>
               </div>
               <div>
-                <div className={`text-base font-bold ${netProceeds > 0 ? 'text-navy' : 'text-red-500'}`}>{fmtCurrency(netProceeds)}</div>
+                <div className={`text-base font-bold ${equityMultiple >= 1 ? 'text-navy' : 'text-red-500'}`}>{fmtMultiple(equityMultiple)}</div>
+                <div className="text-xs text-slate-400">Cash multiple (MoC)</div>
+              </div>
+              <div>
+                <div className={`text-sm font-bold ${netProceeds > 0 ? 'text-slate-700' : 'text-red-500'}`}>{fmtCurrency(netProceeds)}</div>
                 <div className="text-xs text-slate-400">Net proceeds after CGT</div>
               </div>
               <div>

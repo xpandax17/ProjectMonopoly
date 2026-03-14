@@ -1,5 +1,5 @@
 import React from 'react'
-import { fmtCurrency, fmtPct } from '../../utils/calculations'
+import { fmtCurrency, fmtPct, fmtMultiple } from '../../utils/calculations'
 import { ExitSelector } from './InputsTab'
 
 const SECTIONS = [
@@ -60,7 +60,7 @@ function cellClass(value, opts = {}) {
 
 export default function CashFlowTab({ inputs, results, allResults, selectedExit, setSelectedExit }) {
   const { yearlyData, totalInitialOutlay, exitYear, salePrice, outstandLoan,
-          totalSellCosts, cgtPayable, netProceeds, capitalGain } = results
+          totalSellCosts, cgtPayable, netProceeds, capitalGain, irr, equityMultiple } = results
 
   const visibleYears = yearlyData.filter(y => y.year <= exitYear)
 
@@ -160,8 +160,24 @@ export default function CashFlowTab({ inputs, results, allResults, selectedExit,
                 </React.Fragment>
               ))}
 
-              {/* Weekly / Monthly rows */}
-              <tr className="bg-navy/5 border-t-2 border-navy/20">
+              {/* Weekly before neg gearing */}
+              <tr className="bg-slate-100 border-t-2 border-navy/20">
+                <td
+                  className="bg-slate-100 px-4 py-2 font-semibold text-slate-600 whitespace-nowrap text-xs uppercase tracking-wide"
+                  style={{ position: 'sticky', left: 0, zIndex: 10 }}
+                >
+                  Weekly CF (before neg. gearing)
+                </td>
+                {visibleYears.map(y => (
+                  <td key={y.year} className={`px-3 py-2 text-right font-semibold whitespace-nowrap text-xs ${
+                    y.year === exitYear ? 'bg-amber-50' : ''
+                  } ${y.weeklyNetBefore >= 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                    {`${y.weeklyNetBefore >= 0 ? '+' : ''}$${Math.abs(y.weeklyNetBefore).toFixed(0)}/wk`}
+                  </td>
+                ))}
+              </tr>
+              {/* Weekly after neg gearing */}
+              <tr className="bg-navy/5 border-b border-navy/10">
                 <td
                   className="bg-navy/5 px-4 py-2 font-bold text-navy whitespace-nowrap text-xs uppercase tracking-wide"
                   style={{ position: 'sticky', left: 0, zIndex: 10 }}
@@ -176,24 +192,6 @@ export default function CashFlowTab({ inputs, results, allResults, selectedExit,
                   </td>
                 ))}
               </tr>
-              <tr className="bg-navy/5 border-b border-navy/10">
-                <td
-                  className="bg-navy/5 px-4 py-2 font-bold text-navy whitespace-nowrap text-xs uppercase tracking-wide"
-                  style={{ position: 'sticky', left: 0, zIndex: 10 }}
-                >
-                  Monthly CF (after neg. gearing)
-                </td>
-                {visibleYears.map(y => {
-                  const monthly = y.netCFAfterTax / 12
-                  return (
-                    <td key={y.year} className={`px-3 py-2 text-right font-semibold whitespace-nowrap text-xs ${
-                      y.year === exitYear ? 'bg-amber-50' : ''
-                    } ${monthly >= 0 ? 'text-emerald-600' : 'text-amber-700'}`}>
-                      {`${monthly >= 0 ? '+' : ''}$${Math.abs(monthly).toFixed(0)}/mo`}
-                    </td>
-                  )
-                })}
-              </tr>
             </tbody>
           </table>
         </div>
@@ -205,6 +203,19 @@ export default function CashFlowTab({ inputs, results, allResults, selectedExit,
           <h3 className="font-semibold text-navy text-sm">Exit Analysis — Year {exitYear}</h3>
         </div>
         <div className="card-body">
+          {/* Returns summary — top row */}
+          <div className="grid grid-cols-2 gap-4 mb-5 p-4 bg-navy/3 rounded-xl border border-navy/10">
+            <div>
+              <div className={`text-3xl font-bold ${irr > 0 ? 'text-emerald-600' : 'text-red-500'}`}>{fmtPct(irr)}</div>
+              <div className="text-xs text-slate-500 mt-0.5">IRR — annualised total return after CGT</div>
+            </div>
+            <div>
+              <div className={`text-3xl font-bold ${equityMultiple >= 1 ? 'text-navy' : 'text-red-500'}`}>{fmtMultiple(equityMultiple)}</div>
+              <div className="text-xs text-slate-500 mt-0.5">Cash multiple — net proceeds ÷ initial outlay</div>
+            </div>
+          </div>
+
+          {/* Proceeds breakdown */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-4">
             {[
               { label: 'Sale Price',             value: fmtCurrency(salePrice),      color: 'text-navy' },

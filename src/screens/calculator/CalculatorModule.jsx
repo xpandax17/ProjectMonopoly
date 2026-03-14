@@ -121,11 +121,7 @@ export default function CalculatorModule() {
       {/* ── Tab nav ──────────────────────────────────────────── */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="px-8">
-          <div className="flex items-end gap-1 pt-5 pb-0">
-            <div className="flex-1">
-              <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-1">Cash Flow Model</p>
-              <h2 className="font-playfair text-xl font-bold text-navy">Property Calculator</h2>
-            </div>
+          <div className="flex items-end gap-4 pt-5 pb-0">
             <nav className="flex gap-0">
               {TABS.map(tab => (
                 <button
@@ -143,6 +139,9 @@ export default function CalculatorModule() {
                 </button>
               ))}
             </nav>
+            <div className="ml-auto pb-3">
+              <p className="text-xs text-slate-400 font-medium">Property Cash Flow Model</p>
+            </div>
           </div>
         </div>
       </div>
