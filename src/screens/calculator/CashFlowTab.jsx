@@ -2,10 +2,13 @@ import React from 'react'
 import { fmtCurrency, fmtPct, fmtMultiple } from '../../utils/calculations'
 import { ExitSelector } from './InputsTab'
 
+// Solid hex equivalents for all section header backgrounds
+// (Tailwind opacity classes like bg-navy/5 are transparent and bleed through sticky cells)
 const SECTIONS = [
   {
     title: 'INCOME',
-    color: 'text-emerald-700 bg-emerald-50',
+    labelBg: 'bg-emerald-50',
+    labelText: 'text-emerald-700',
     rows: [
       { key: 'grossRent',  label: 'Gross Rental Income' },
       { key: 'annualRent', label: 'Effective Rent (after vacancy)', muted: true },
@@ -13,7 +16,8 @@ const SECTIONS = [
   },
   {
     title: 'EXPENSES',
-    color: 'text-red-700 bg-red-50',
+    labelBg: 'bg-red-50',
+    labelText: 'text-red-700',
     rows: [
       { key: 'interestAmt',   label: 'Interest Expense',       negate: true },
       { key: 'principalPaid', label: 'Principal Repayment',    negate: true, muted: true },
@@ -28,7 +32,8 @@ const SECTIONS = [
   },
   {
     title: 'CASH FLOW',
-    color: 'text-navy bg-navy/5',
+    labelBg: 'bg-slate-100',   // was bg-navy/5 — transparent, broke scrolling
+    labelText: 'text-navy',
     rows: [
       { key: 'netCFBeforeTax',     label: 'Net CF Before Tax',        bold: true },
       { key: 'annualDepreciation', label: 'Depreciation (non-cash)',  negate: true, muted: true },
@@ -39,7 +44,8 @@ const SECTIONS = [
   },
   {
     title: 'PROPERTY & LOAN',
-    color: 'text-slate-700 bg-slate-50',
+    labelBg: 'bg-slate-50',
+    labelText: 'text-slate-700',
     rows: [
       { key: 'propValueEnd',  label: 'Property Value (end yr)' },
       { key: 'loanOpening',   label: 'Loan Balance (start)',   negate: true, muted: true },
@@ -124,17 +130,25 @@ export default function CashFlowTab({ inputs, results, allResults, selectedExit,
 
               {SECTIONS.map(section => (
                 <React.Fragment key={section.title}>
+                  {/*
+                    Section header: DO NOT use colSpan + sticky together — it breaks horizontal scrolling.
+                    Instead: first cell is sticky with the label; remaining cells are solid-bg fillers.
+                    This keeps the section label visible at the left as the user scrolls right.
+                  */}
                   <tr>
                     <td
-                      colSpan={visibleYears.length + 1}
-                      className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider ${section.color}`}
-                      style={{ position: 'sticky', left: 0 }}
+                      className={`${section.labelBg} ${section.labelText} px-4 py-1.5 text-xs font-bold uppercase tracking-wider whitespace-nowrap`}
+                      style={{ position: 'sticky', left: 0, zIndex: 15 }}
                     >
                       {section.title}
                     </td>
+                    {visibleYears.map(y => (
+                      <td key={y.year} className={section.labelBg} />
+                    ))}
                   </tr>
+
                   {section.rows.map((row, ri) => (
-                    <tr key={row.key} className={`border-b border-slate-100 hover:bg-slate-50/60 ${ri % 2 === 0 ? '' : 'bg-slate-50/30'}`}>
+                    <tr key={row.key} className={`border-b border-slate-100 ${ri % 2 !== 0 ? 'bg-slate-50' : ''}`}>
                       <td
                         className={`bg-white px-4 py-1.5 whitespace-nowrap ${
                           row.bold ? 'font-semibold text-slate-800' : row.muted ? 'text-slate-400 pl-6' : 'text-slate-600'
@@ -161,7 +175,7 @@ export default function CashFlowTab({ inputs, results, allResults, selectedExit,
               ))}
 
               {/* Weekly before neg gearing */}
-              <tr className="bg-slate-100 border-t-2 border-navy/20">
+              <tr className="bg-slate-100 border-t-2 border-slate-300">
                 <td
                   className="bg-slate-100 px-4 py-2 font-semibold text-slate-600 whitespace-nowrap text-xs uppercase tracking-wide"
                   style={{ position: 'sticky', left: 0, zIndex: 10 }}
@@ -176,17 +190,17 @@ export default function CashFlowTab({ inputs, results, allResults, selectedExit,
                   </td>
                 ))}
               </tr>
-              {/* Weekly after neg gearing */}
-              <tr className="bg-navy/5 border-b border-navy/10">
+              {/* Weekly after neg gearing — solid bg-slate-50, NOT bg-navy/5 (transparent) */}
+              <tr className="bg-slate-50 border-b border-slate-200">
                 <td
-                  className="bg-navy/5 px-4 py-2 font-bold text-navy whitespace-nowrap text-xs uppercase tracking-wide"
+                  className="bg-slate-50 px-4 py-2 font-bold text-navy whitespace-nowrap text-xs uppercase tracking-wide"
                   style={{ position: 'sticky', left: 0, zIndex: 10 }}
                 >
                   Weekly CF (after neg. gearing)
                 </td>
                 {visibleYears.map(y => (
                   <td key={y.year} className={`px-3 py-2 text-right font-semibold whitespace-nowrap text-xs ${
-                    y.year === exitYear ? 'bg-amber-50' : ''
+                    y.year === exitYear ? 'bg-amber-50' : 'bg-slate-50'
                   } ${y.weeklyNetAfter >= 0 ? 'text-emerald-600' : 'text-amber-700'}`}>
                     {`${y.weeklyNetAfter >= 0 ? '+' : ''}$${Math.abs(y.weeklyNetAfter).toFixed(0)}/wk`}
                   </td>
@@ -204,7 +218,7 @@ export default function CashFlowTab({ inputs, results, allResults, selectedExit,
         </div>
         <div className="card-body">
           {/* Returns summary — top row */}
-          <div className="grid grid-cols-2 gap-4 mb-5 p-4 bg-navy/3 rounded-xl border border-navy/10">
+          <div className="grid grid-cols-2 gap-4 mb-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
             <div>
               <div className={`text-3xl font-bold ${irr > 0 ? 'text-emerald-600' : 'text-red-500'}`}>{fmtPct(irr)}</div>
               <div className="text-xs text-slate-500 mt-0.5">IRR — annualised total return after CGT</div>

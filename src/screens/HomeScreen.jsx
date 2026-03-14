@@ -1,72 +1,68 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Brain, BarChart2, Calculator, Receipt, ArrowRight, Search } from 'lucide-react'
+import { Brain, BarChart2, Calculator, Receipt, Search, ArrowRight } from 'lucide-react'
 
 const TOOLS = [
   {
     path: '/quiz',
     icon: Brain,
-    color: 'bg-purple-50',
-    iconColor: 'text-purple-600',
-    accentColor: 'bg-purple-600',
-    tag: 'Step 1',
-    title: 'Investor Profile Quiz',
-    description: '12 questions · 5 archetypes. Understand your risk tolerance, time commitment, and strategy fit before you buy.',
+    gradient: 'from-violet-500 to-purple-600',
+    iconBg: 'bg-violet-100',
+    iconColor: 'text-violet-600',
+    step: '01',
+    title: 'Investor Profile',
+    tagline: 'What type of investor are you?',
+    desc: '12 questions · 5 archetypes · strategy fit',
     cta: 'Take the quiz',
-    badge: '~4 mins',
-    badgeColor: 'bg-purple-100 text-purple-700',
   },
   {
     path: '/calculator',
     icon: BarChart2,
-    color: 'bg-blue-50',
+    gradient: 'from-navy to-blue-700',
+    iconBg: 'bg-blue-100',
     iconColor: 'text-navy',
-    accentColor: 'bg-navy',
-    tag: 'Step 2',
+    step: '02',
     title: 'Cash Flow Model',
-    description: 'Model a property\'s 20-year cash flow. Weekly holding cost, IRR, and net proceeds across Y5 / Y10 / Y15 exit scenarios.',
+    tagline: 'Does this deal stack up?',
+    desc: 'IRR · weekly cost · Y5 / Y10 / Y15 exits',
     cta: 'Run the numbers',
-    badge: 'Core tool',
-    badgeColor: 'bg-navy/10 text-navy',
+    highlight: true,
   },
   {
     path: '/borrowing',
     icon: Calculator,
-    color: 'bg-emerald-50',
+    gradient: 'from-emerald-500 to-teal-600',
+    iconBg: 'bg-emerald-100',
     iconColor: 'text-emerald-600',
-    accentColor: 'bg-emerald-600',
-    tag: 'Step 3',
+    step: '03',
     title: 'Borrowing Power',
-    description: 'Quick estimate of your maximum borrowing capacity based on income, expenses, and deposit size.',
+    tagline: 'How much can you borrow?',
+    desc: 'Income · expenses · deposit → max loan',
     cta: 'Check capacity',
-    badge: 'Quick calc',
-    badgeColor: 'bg-emerald-100 text-emerald-700',
   },
   {
     path: '/stamp-duty',
     icon: Receipt,
-    color: 'bg-amber-50',
+    gradient: 'from-amber-500 to-orange-500',
+    iconBg: 'bg-amber-100',
     iconColor: 'text-amber-600',
-    accentColor: 'bg-amber-600',
-    tag: 'Step 4',
-    title: 'Stamp Duty & Costs',
-    description: 'State-based stamp duty calculator for QLD · NSW · VIC · WA, plus conveyancer, inspection, and total upfront costs.',
+    step: '04',
+    title: 'Stamp Duty',
+    tagline: 'What\'s the total upfront cost?',
+    desc: 'QLD · NSW · VIC · WA · FHB concessions',
     cta: 'Calculate costs',
-    badge: 'QLD/NSW/VIC/WA',
-    badgeColor: 'bg-amber-100 text-amber-700',
   },
   {
     path: '/research',
     icon: Search,
-    color: 'bg-slate-50',
+    gradient: 'from-slate-400 to-slate-500',
+    iconBg: 'bg-slate-100',
     iconColor: 'text-slate-400',
-    accentColor: 'bg-slate-400',
-    tag: 'Coming Soon',
+    step: '05',
     title: 'Property Research',
-    description: 'Paste a Domain.com.au link. Pull listing data, run comparable sales, and get a full due diligence checklist.',
-    cta: 'Coming soon',
-    badge: 'V4',
-    badgeColor: 'bg-slate-100 text-slate-500',
+    tagline: 'Due diligence on any listing',
+    desc: 'Comparables · suburb data · checklist',
+    cta: 'Coming in V4',
     disabled: true,
   },
 ]
@@ -75,20 +71,21 @@ export default function HomeScreen() {
   const navigate = useNavigate()
 
   return (
-    <div className="max-w-5xl mx-auto px-8 py-10">
-      {/* Page header */}
-      <div className="mb-10">
-        <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-2">Property Investment Toolkit</p>
-        <h1 className="font-playfair text-3xl font-bold text-navy mb-2">
-          Where do you want to start?
+    <div className="max-w-4xl mx-auto px-8 py-12">
+
+      {/* Header */}
+      <div className="mb-12">
+        <p className="text-xs font-bold text-gold uppercase tracking-widest mb-3">Project Monopoly</p>
+        <h1 className="font-playfair text-4xl font-bold text-navy mb-3 leading-tight">
+          Property Investment Toolkit
         </h1>
-        <p className="text-slate-500 text-base max-w-2xl">
-          Five tools that take you from "what type of investor am I?" to "does this deal stack up?" — each one designed for clarity, not complexity.
+        <p className="text-slate-400 text-base max-w-lg">
+          Four tools. From investor profile to deal analysis.
         </p>
       </div>
 
       {/* Tool grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {TOOLS.map(tool => {
           const Icon = tool.icon
           return (
@@ -96,42 +93,46 @@ export default function HomeScreen() {
               key={tool.path}
               onClick={() => !tool.disabled && navigate(tool.path)}
               className={`
-                group relative bg-white border border-slate-200 rounded-xl p-6 transition-all
+                group relative bg-white border rounded-2xl overflow-hidden transition-all
                 ${tool.disabled
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'cursor-pointer hover:border-navy/30 hover:shadow-md hover:-translate-y-0.5'
+                  ? 'opacity-40 cursor-not-allowed border-slate-200'
+                  : tool.highlight
+                    ? 'cursor-pointer border-navy/30 shadow-md hover:shadow-lg hover:-translate-y-0.5'
+                    : 'cursor-pointer border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5'
                 }
               `}
             >
-              <div className="flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-xl ${tool.color} flex items-center justify-center flex-shrink-0`}>
-                  <Icon size={18} className={tool.iconColor} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{tool.tag}</span>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${tool.badgeColor}`}>
-                      {tool.badge}
-                    </span>
+              {/* Colour accent strip */}
+              <div className={`h-1 w-full bg-gradient-to-r ${tool.gradient}`} />
+
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  {/* Icon */}
+                  <div className={`w-11 h-11 rounded-xl ${tool.iconBg} flex items-center justify-center`}>
+                    <Icon size={20} className={tool.iconColor} />
                   </div>
-                  <h3 className="font-semibold text-navy text-base mb-1.5">{tool.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">{tool.description}</p>
-                  {!tool.disabled && (
-                    <div className="mt-3 flex items-center gap-1 text-sm font-semibold text-navy group-hover:text-gold transition-colors">
-                      {tool.cta}
-                      <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  )}
+                  {/* Step number */}
+                  <span className="text-xs font-bold text-slate-200 tabular-nums">{tool.step}</span>
                 </div>
+
+                <h3 className="font-bold text-navy text-lg mb-0.5 leading-tight">{tool.title}</h3>
+                <p className="text-sm font-medium text-slate-600 mb-2">{tool.tagline}</p>
+                <p className="text-xs text-slate-400">{tool.desc}</p>
+
+                {!tool.disabled && (
+                  <div className="mt-5 flex items-center gap-1 text-xs font-bold text-navy group-hover:text-gold transition-colors uppercase tracking-wide">
+                    {tool.cta}
+                    <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                )}
               </div>
             </div>
           )
         })}
       </div>
 
-      {/* Footer note */}
-      <p className="mt-8 text-xs text-slate-400 text-center">
-        Built for Australian residential property investors · All projections are illustrative only · Not financial advice
+      <p className="mt-8 text-xs text-slate-300 text-center">
+        For Australian residential property investors · Illustrative only · Not financial advice
       </p>
     </div>
   )
